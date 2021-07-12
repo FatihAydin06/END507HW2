@@ -11,7 +11,7 @@ flow = flow1.to_numpy()
 iteration = 200
 lst_len = 10
 solution_len = 20
-N = 190
+Alt = 190
 s = 0
 
 def assignment_cost(solution):
@@ -21,31 +21,31 @@ def assignment_cost(solution):
         cost += dist[i][j] *flow[solution[i]][solution[j]]
   return cost
 
-neighbors = np.zeros((N, solution_len + 2), dtype=int)
+neighbor_solution = np.zeros((N, solution_len + 2), dtype=int)
 
 def swap(sol_n):
-    global idx, neighbors
+    global idx, neighbor_solution
     for i in range (solution_len):
         j = i + 1
         for j in range(solution_len):
             if  i < j:
                 idx = idx + 1
                 sol_n[j], sol_n[i] = sol_n[i], sol_n[j]
-                neighbors[idx, :-2] = sol_n
-                neighbors[idx, -2:] = [sol_n[i], sol_n[j]]
+                neighbor_solution[idx, :-2] = sol_n
+                neighbor_solution[idx, -2:] = [sol_n[i], sol_n[j]]
                 sol_n[i], sol_n[j] = sol_n[j], sol_n[i]
 
 def not_in_tabu (solution, tabu):
-    not_found = False
+    tabulist = False
     if not solution.tolist() in tabu:
         solution[0], solution[1] = solution[1], solution[0]
         if not solution.tolist() in tabu:
-            not_found = True
+            tabulist = True
 
-    return not_found
+    return tabulist
 
 def tabu_search():
-    global neighbors, iteration, idx, s
+    global neighbor_solution, iteration, idx, s
     current_solution = [3,11,13,10,2,7,17,19,16,6,5,15,18,14,4,1,10,12,8,0]
     #current_solution = random.sample(range(solution_len), solution_len)
     best_solution = current_solution
@@ -58,18 +58,18 @@ def tabu_search():
         idx = -1
         swap(current_solution)
 
-        cost = np.zeros((len(neighbors)))
-        for index in range(len(neighbors)):
-            cost[index] = assignment_cost(neighbors[index, :-2])
+        cost = np.zeros((len(neighbor_solution)))
+        for index in range(len(neighbor_solution)):
+            cost[index] = assignment_cost(neighbor_solution[index, :-2])
         rank = np.argsort(cost)
-        neighbors = neighbors[rank]
+        neighbor_solution = neighbor_solution[rank]
 
-        for j in range(N):
+        for j in range(alt):
 
-            not_tabu = not_in_tabu(neighbors[j, -2:], Tabu)
-            if (not_tabu):
-                current_solution = neighbors[j, :-2].tolist()
-                Tabu.append(neighbors[j, -2:].tolist())
+            tabulist = not_in_tabu(neighbor_solution[j, -2:], Tabu)
+            if (tabulist):
+                current_solution = neighbor_solution[j, :-2].tolist()
+                Tabu.append(neighbor_solution[j, -2:].tolist())
 
                 if len(Tabu) > lst_len - 1:
                     Tabu = Tabu[1:]
